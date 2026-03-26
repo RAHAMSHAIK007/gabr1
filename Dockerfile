@@ -21,7 +21,7 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Set environment
+# Set environments
 ENV NODE_ENV=production
 ENV PORT=3000
 
