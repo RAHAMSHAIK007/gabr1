@@ -1,20 +1,9 @@
-name: Cron Demo
-
-on:
-  schedule:
-    - cron: '*/5 * * * *'   # Every 5 minutes
-
-  workflow_dispatch:        # Allows manual execution
-
+name: project2
+on: workflow_dispatch
 jobs:
-  show-time:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Print Current Date and Time
-        run: |
-          echo "Workflow Triggered Successfully"
-          echo "Current UTC Time:"
-          date -u
-          echo "Current System Time:"
-          date
+      - name: Checkout Code
+        uses: actions/checkout@v6
+        
