@@ -52,6 +52,11 @@ jobs:
           name: artifact-1
           path: |
              package*
-
+             
+      - name: checkout
+        uses: actions/checkout@v6
+        
       - name: Deploy
         run: echo "Deploying to production server..."
+        env:
+          API_TOKEN: ${{ secrets.PROD_SERVER_TOKEN }}
