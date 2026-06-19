@@ -1,62 +1,20 @@
-name: NodeJs
+name: Reusable Node.js Build
 
 on:
-  push:
+  workflow_call:
+    inputs:
+      node_version:
+        required: true
+        type: string
+        description: "The version of Node.js to use"
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - windows-latest
-
-        node-version:
-          - 18
-          - 20
-          - 22
-
-        exclude:
-          - os: windows-latest
-            node-version: 22
-
+    runs-on: ubuntu-latest
     steps:
-      - name: Get code
-        uses: actions/checkout@v6
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 18
-
-      - name: Cache Dependencies
-        uses: actions/cache@v5
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run tests
-        run: npm test
-
-      - name: Build
-        run: npm run build
-
-      - name: Artifact upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-1
-          path: |
-             package*
-             
-      - name: checkout
-        uses: actions/checkout@v6
-        
-      - name: Deploy
-        run: echo "Deploying to production server..."
-        env:
-          API_TOKEN: ${{ secrets.PROD_SERVER_TOKEN }}
+          node-version: ${{ inputs.node_version }} # Uses the dynamic input!
+      - run: npm ci
+      - run: npm test
