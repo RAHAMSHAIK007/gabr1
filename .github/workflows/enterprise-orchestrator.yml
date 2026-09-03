@@ -5,17 +5,18 @@ on:
   workflow_dispatch: 
 
 jobs:
-  buil-test:
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
-      runs-on: ${{ matrix.os }}
+  build-test:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
+    runs-on: ${{ matrix.os }}
 
-      strategy:
-        matrix:
-          os: [ubuntu-latest, windows-latest]
-          node-version: [18, 20, 22]
-          exclude:
-            - os: windows-latest
-              node-version: 22
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node-version: [18, 20, 22]
+        exclude:
+          - os: windows-latest
+            node-version: 22
+    
     steps:
       - name: checkout
         uses: actions/checkout@v7
@@ -44,7 +45,7 @@ jobs:
 
       - name: deploy
         if: success()
-        run: ech0 "my code is deployed"
+        run: echo "my code is deployed"
 
       - name: rollback
         if: failure()
