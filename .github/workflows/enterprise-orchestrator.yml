@@ -36,7 +36,7 @@ jobs:
 
       - name: deploy
         if: success()
-        run: echo "my code is deployed"
+        run: ech0 "my code is deployed"
 
       - name: rollback
         if: failure()
