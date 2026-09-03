@@ -1,12 +1,13 @@
 name: CI-WORKFLOW
 on:
   push:
-    branches: master
+    branches: [ "master", "main", "dev ]
   workflow_dispatch: 
 
 jobs:
   buil-test:
     runs-on: ubuntu-slim
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
     steps:
       - name: checkout
         uses: actions/checkout@v7
