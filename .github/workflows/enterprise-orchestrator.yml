@@ -6,6 +6,7 @@ on:
 
 jobs:
   buil-test:
+      if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
       runs-on: ${{ matrix.os }}
 
       strategy:
@@ -15,8 +16,6 @@ jobs:
           exclude:
             - os: windows-latest
               node-version: 22
-
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
     steps:
       - name: checkout
         uses: actions/checkout@v7
