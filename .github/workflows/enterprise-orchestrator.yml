@@ -35,4 +35,5 @@ jobs:
              package*
 
       - name: deploy
+        if: success()
         run: echo "my code is deployed"
