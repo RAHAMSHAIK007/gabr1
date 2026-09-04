@@ -1,118 +1,79 @@
-name: CI-WORKFLOW
-
-on:
-  push:
-    branches: ["master", "main", "dev"]
-
-  workflow_dispatch:
-    inputs:
-      username:
-        description: "Enter your username"
-        required: true
-        default: "Raham"
-        type: string
-
-      environment:
-        description: "Select deployment environment"
-        required: true
-        default: "staging"
-        type: choice
-        options:
-          - dev
-          - staging
-          - production
-
-      deploy:
-        description: "Do you want to deploy?"
-        required: true
-        default: false
-        type: boolean
-
-
+name: project2
+on: push
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    outputs:
-      build_status: ${{ steps.build_output.outputs.status }}
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+       
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Application
-        id: build_output
-        run: |
-          echo "Building application..."
-          npm run build
-          echo "status=Build Successful" >> "$GITHUB_OUTPUT"
+        run: npm run build
+
+      - name: Artifact upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact-1
+          path: |
+             package*
 
   test:
     needs: build
     runs-on: ubuntu-latest
 
-    outputs:
-      test_status: ${{ steps.test_output.outputs.status }}
-
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
+      - name: Cache Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+       
+      - name: Install Dependencies
+        run: npm install
+
       - name: Run Tests
-        id: test_output
-        run: |
-          echo "Running tests..."
-          npm test
-          echo "status=Test Successful" >> "$GITHUB_OUTPUT"
-
-
-  security:
-    needs: [build, test]
-    runs-on: ubuntu-latest
-
-    outputs:
-      security_status: ${{ steps.security_output.outputs.status }}
-
-    steps:
-      - name: Security Scan
-        id: security_output
-        run: |
-          echo "Running security scan..."
-          npm audit --audit-level=high
-          echo "status=Security Scan Successful" >> "$GITHUB_OUTPUT"
-
+        run: npm test
 
   deploy:
-    needs: [build, test, security]
+    needs: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Show Pipeline Outputs
-        run: |
-          echo "================================="
-          echo "         PIPELINE OUTPUTS"
-          echo "================================="
-          echo "Build Status    : ${{ needs.build.outputs.build_status }}"
-          echo "Test Status     : ${{ needs.test.outputs.test_status }}"
-          echo "Security Status : ${{ needs.security.outputs.security_status }}"
-          echo "================================="
-
-      - name: Deploy
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.deploy == true }}
-        run: |
-          echo "================================="
-          echo "         DEPLOYMENT"
-          echo "================================="
-          echo "Username    : ${{ inputs.username }}"
-          echo "Environment : ${{ inputs.environment }}"
-          echo "Status      : Deployment Successful"
-          echo "================================="
-
-      - name: Skip Deployment
-        if: ${{ github.event_name == 'push' || inputs.deploy == false }}
-        run: |
-          echo "Deployment skipped."
-          echo "Push workflow or deploy option was set to false."
+      - name: Artifact upload
+        uses: actions/download-artifact@v4
+        with:
+          name: artifact-1
+          path: |
+             package*
+             
+      - name: Deploy Application
+        run: echo "Deploying to production server..."
 
 
- 
+  info:
+     runs-on: ubuntu-latest
+     steps:
+       - name: Output of the Job
+         run: echo "${{ toJson(github) }}" 
