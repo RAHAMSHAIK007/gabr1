@@ -1,52 +1,40 @@
 name: CI-WORKFLOW
+
 on:
   push:
-    branches: [ "master", "main", "dev" ]
-  workflow_dispatch: 
+    branches: ["master", "main", "dev"]
+  workflow_dispatch:
 
 jobs:
-  build-test:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'  
-    runs-on: ${{ matrix.os }}
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
-        node-version: [18, 20, 22]
-        exclude:
-          - os: windows-latest
-            node-version: 22
-    
+  build:
+    runs-on: ubuntu-latest
+
     steps:
-      - name: checkout
-        uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Cache Dependencies 
-        uses: actions/cache@v5 
-        with: 
-          path: ~/.npm 
-          key: ${{ runner.os }}-node-${{ matrix.node-version }}-${{ hashFiles('**/package-lock.json') }} 
-          restore-keys: | 
-             ${{ runner.os }}-node-${{ matrix.node-version }}-
-
-
-      - name: build
+      - name: Build
         run: npm install
 
-      - name: test
-        run: npm test
-        
-      - name: Artifact upload
-        uses: actions/upload-artifact@v7
-        with:
-          name: artifact-1
-          path: |
-             package*
+  test:
+    runs-on: ubuntu-latest
 
-      - name: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test
+        run: npm test
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy
         if: success()
         run: echo "my code is deployed"
 
-      - name: rollback
+      - name: Rollback
         if: failure()
         run: echo "rollback is done"
