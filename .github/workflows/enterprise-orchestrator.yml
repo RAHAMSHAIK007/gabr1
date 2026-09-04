@@ -1,79 +1,89 @@
-name: project2
-on: push
+name: CI-WORKFLOW
+
+on:
+  push:
+    branches: ["master", "main", "dev"]
+
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "Enter your username"
+        required: true
+        default: "Raham"
+        type: string
+
+      environment:
+        description: "Select deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - dev
+          - staging
+          - production
+
+      deploy:
+        description: "Do you want to deploy?"
+        required: true
+        default: false
+        type: boolean
+
+
 jobs:
+
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
+      - name: Show Inputs
+        run: |
+          echo "Username: ${{ inputs.username }}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Deploy: ${{ inputs.deploy }}"
 
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
-      - name: Install Dependencies
+      - name: Build
         run: npm install
 
-      - name: Build Application
-        run: npm run build
-
-      - name: Artifact upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact-1
-          path: |
-             package*
 
   test:
     needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Setup NodeJS
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          
-      - name: Cache Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key:  ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-       
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Run Tests
+      - name: Test
         run: npm test
 
-  deploy:
+
+  security:
     needs: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Artifact upload
-        uses: actions/download-artifact@v4
-        with:
-          name: artifact-1
-          path: |
-             package*
-             
-      - name: Deploy Application
-        run: echo "Deploying to production server..."
+      - name: Security Check
+        run: echo "Security scan completed"
 
+      - name: Deploy
+        if: ${{ inputs.deploy == true }}
+        run: |
+          echo "Deploying to ${{ inputs.environment }}"
+          echo "Deployed by ${{ inputs.username }}"
+
+      - name: Skip Deployment
+        if: ${{ inputs.deploy == false }}
+        run: echo "Deployment skipped"
+
+      - name: Rollback
+        if: failure()
+        run: echo "Rollback is done"
 
   info:
      runs-on: ubuntu-latest
      steps:
        - name: Output of the Job
-         run: echo "${{ toJson(github) }}" 
+         run: echo "${{ toJson(github) }}"
